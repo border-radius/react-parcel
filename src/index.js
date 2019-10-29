@@ -1,60 +1,70 @@
-import 'babel-polyfill'
-import 'semantic-ui-css/semantic.min.css'
 import React, { useState, useEffect } from 'react'
 import { render } from 'react-dom'
-import { Card, Icon, Image, Loader, Dimmer, Container } from 'semantic-ui-react'
 
-const App = () => {
-    const [ loading, setLoading ] = useState(true);
-    const [ error, setError ] = useState(false);
-    const [ user, setUser ] = useState({});
+const Item = ({ item }) => {
+    return (
+        <div className="item">
+            <p>
+                <strong>{ item.title }</strong>, { item.desc }
+            </p>
+        </div>
+    )
+}
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const request = await fetch('https://jsonplaceholder.typicode.com/users/1')
+const NewItem = ({ onSubmit }) => {
+    const [ title, setTitle ] = useState('')
+    const [ desc, setDesc ] = useState('')
 
-            if (request.ok) {
-                setUser(await request.json())
-            } else {
-                setError(true);
-            }
+    const titleChanged = ({ target }) => setTitle(target.value)
+    const descChanged = ({ target }) => setDesc(target.value)
 
-            setLoading(false);
-        }
+    const addItem = (event) => {
+        event.preventDefault()
 
-        fetchData();
-    }, [])
+        console.log({
+            title, desc
+        })
 
-    if (loading) {
-        return <Dimmer active><Loader /></Dimmer>
-    }
+        onSubmit({
+            desc,
+            title,
+            id: Math.random().toString(36).slice(2),
+        })
 
-    if (error) {
-        return <strong>Error</strong>
+        setTitle('')
+        setDesc('')
     }
 
     return (
-        <Container style={{ padding: '50px 0' }}>
-            <Card>
-                <Image src='https://react.semantic-ui.com/images/avatar/large/matthew.png' wrapped ui={false} />
-                <Card.Content>
-                <Card.Header>{ user.name }</Card.Header>
-                <Card.Meta>
-                    <span className='date'>{ user.email }</span>
-                </Card.Meta>
-                <Card.Description>
-                    <strong>{ user.company.name }</strong>, { user.company.catchPhrase }
-                </Card.Description>
-                </Card.Content>
-                <Card.Content extra>
-                <a>
-                    <Icon name='phone' />
-                    { user.phone }
-                </a>
-                </Card.Content>
-            </Card>
-        </Container>
+        <form onSubmit={ addItem }>
+            <p>
+                Title:
+                <input type="text" value={ title } onChange={ titleChanged } />
+            </p>
+            <p>
+                Desc:
+                <input type="text" value={ desc } onChange={ descChanged } />
+            </p>
+            <button role="submit">Add</button>
+        </form>
     )
+}
+
+const Board = () => {
+    const [items, setItems] = useState([])
+
+    const addItem = newItem => setItems(items.concat(newItem))
+
+    return (
+        <div className="board">
+            { items.map(item => <Item item={ item } key={ item.id } />) }
+            <NewItem onSubmit={ addItem } />
+        </div>
+    )
+}
+
+const App = () => {
+    return <Board />
 }
 
 render(<App />, document.getElementById('app'))
